@@ -113,7 +113,8 @@ with lib; let
     installJavascript   = true;
   };
 
-  commonBuildInputs = [ _nodejs makeWrapper ];  # TODO: git?
+  commonBuildInputs = [ _nodejs ];  # TODO: git?
+  commonNativeBuildInputs = [ makeWrapper ];
 
   # unpack the .tgz into output directory and add npm wrapper
   # TODO: "cd $out" vs NIX_NPM_BUILDPACKAGE_OUT=$out?
@@ -185,7 +186,7 @@ in rec {
         # this is what npm runs by default, only run when it exists
         ${jq}/bin/jq -e '.scripts.prepublish' package.json >/dev/null && npm run prepublish
         ${jq}/bin/jq -e '.scripts.prepare' package.json >/dev/null && npm run prepare
-    '', buildInputs ? [],
+    '', buildInputs ? [], nativeBuildInputs ? [],
       packageOverrides ? {},
     extraEnvVars ? {}, # environment variables passed through to `npm ci`
     ...
@@ -229,11 +230,12 @@ in rec {
       '';
     } // commonEnv // extraEnvVars // removeAttrs args [ "extraEnvVars" "packageOverrides" ] // {
       buildInputs = commonBuildInputs ++ buildInputs;
+      nativeBuildInputs = commonNativeBuildInputs ++ nativeBuildInputs;
     });
 
   buildYarnPackage = args @ {
     src, yarnBuild ? "yarn", yarnBuildMore ? "", integreties ? {},
-    packageOverrides ? [], buildInputs ? [], yarnFlags ? [], npmFlags ? [], ...
+    packageOverrides ? [], buildInputs ? [], nativeBuildInputs ? [], yarnFlags ? [], npmFlags ? [], ...
   }:
     let
       info        = npmInfo src;
@@ -290,6 +292,7 @@ in rec {
       '';
     } // commonEnv // removeAttrs args [ "integreties" "packageOverrides" ] // {
       buildInputs = [ _yarn ] ++ commonBuildInputs ++ buildInputs;
+      nativeBuildInputs = commonNativeBuildInputs ++ nativeBuildInputs;
       yarnFlags   = [ "--offline" "--frozen-lockfile" "--non-interactive" ] ++ yarnFlags;
       npmFlags    = npmFlagsYarn ++ npmFlags;
     });
