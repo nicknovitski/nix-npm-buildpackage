@@ -57,7 +57,7 @@ let
     addToSearchPath NODE_PATH ${npmModules}             # ssri
     ${nodejs}/bin/node ${./mkyarnjson.js} ${src + "/yarn.lock"} ${yarnIntFile} > $out
   '';
-  pkgDir = if subdir != null then src + "/" + subdir else src;
+  pkgDir = if subdir != null then src + "/${subdir}" else src;
 in stdenv.mkDerivation (rec {
   inherit (npmInfo pkgDir) pname version;
 
